@@ -27,6 +27,7 @@ class MitreCloudTrailMapping:
 
     @classmethod
     def init(cls) -> 'MitreCloudTrailMapping':
+        # Main instance
         instance = cls(
             query={
                 "bool": {
@@ -38,9 +39,89 @@ class MitreCloudTrailMapping:
             },
             mitre_attack_id="T1134"
         )
+        
+        # Additional attack mappings
         additional_attacks = [
-            cls(query={"bool": {"must": [{"match": {"eventSource": "ec2.amazonaws.com"}}, {"match": {"eventName": "StartInstances"}}]}}, mitre_attack_id="T1135"),
-            cls(query={"bool": {"must": [{"match": {"eventSource": "rds.amazonaws.com"}}, {"match": {"eventName": "CreateDBInstance"}}]}}, mitre_attack_id="T1136")
+            cls(
+                query={
+                    "bool": {
+                        "must": [
+                            {"match": {"eventSource": "ec2.amazonaws.com"}},
+                            {"match": {"eventName": "StartInstances"}}
+                        ]
+                    }
+                },
+                mitre_attack_id="T1135"
+            ),
+            cls(
+                query = {
+                    "bool": {
+                    "must": [
+                        { "match": { "eventSource": "cloudtrail.amazonaws.com" } },
+                        { "match": { "eventName": "StopLogging" } }
+                    ]
+                    }
+                 },
+
+                mitre_attack_id="TA0005"  
+            ),
+            cls(
+                query = {
+                "bool": {
+                "must": [
+                    { "match": { "eventSource": "cloudtrail.amazonaws.com" } },
+                    { "match": { "eventName": "DeleteTrail" } }
+                ]
+                }
+            },
+
+                mitre_attack_id="T1562"  
+            ),
+             cls(
+                query = {
+                "bool": {
+                "must": [
+                    { "match": { "eventSource": "s3.amazonaws.com" } },
+                    {
+                    "bool": {
+                        "should": [
+                        { "match": { "eventName": "DeleteBucketPolicy" } },
+                        { "match": { "eventName": "DeleteBucketReplication" } },
+                        { "match": { "eventName": "DeleteBucketCors" } },
+                        { "match": { "eventName": "DeleteBucketEncryption" } },
+                        { "match": { "eventName": "DeleteBucketLifecycle" } }
+                        ],
+                        "minimum_should_match": 1
+                    }
+                    }
+                ]
+                }
+            },
+                mitre_attack_id="T1070"  
+            ),
+             cls(
+                query = {
+                "bool": {
+                "must": [
+                    { "match": { "eventSource": "s3.amazonaws.com" } },
+                    { "match": { "eventName": "PutBucketLifecycle" } }
+                ]
+                }
+            },
+
+                mitre_attack_id="T1070"  
+            ),
+             cls(
+                 query = {
+                "bool": {
+                "must": [
+                    { "match": { "eventSource": "s3.amazonaws.com" } },
+                    { "match": { "eventName": "AccessDenied" } }
+                ]
+                }
+            },
+                mitre_attack_id="TA0040"  
+            ),
         ]
         instance.add_attack(additional_attacks)
         return instance
