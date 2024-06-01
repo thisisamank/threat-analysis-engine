@@ -1,8 +1,7 @@
 import fastapi as FastAPI
 import uvicorn
 from engine import Engine
-
-
+from mapping import MitreCloudTrailMapping
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI.FastAPI()
@@ -17,6 +16,7 @@ app.add_middleware(
 )
 
 engine = Engine()
+mapping = MitreCloudTrailMapping.init()
 
 @app.get("/")
 def read_root():
@@ -26,6 +26,9 @@ def read_root():
 def search(attack_id: str):
     return engine.search(attack_id)
 
+@app.get("/total_attacks")
+def total_attacks():
+    return {"total_attacks": len(mapping.get_all_attacks())}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
