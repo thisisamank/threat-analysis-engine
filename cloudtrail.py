@@ -18,5 +18,33 @@ class CloudtrailClient:
         print(f"Searching in index {index} with query {query}")
         results = self.client.search(index=index, query=query)
         return results.body.get("hits", {}).get("hits", [])
+    
+    def fetch_all_events(self, index: str, page_size: int = 1000):
+        all_events = []
+        query = {
+            "match_all": {}
+        }
+
+        search_after = None
+        while True:
+            body = {
+                "size": page_size,
+                "query": query,
+                "sort": [
+                    {"@timestamp": "asc"}  
+                ]
+            }
+            
+            if search_after:
+                body["search_after"] = search_after
+            
+            results = self.search(index, body)
+            if not results:
+                break
+
+            all_events.extend(results)
+            search_after = results[-1].get("sort")
+
+        return all_events
 
 
